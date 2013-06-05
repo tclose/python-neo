@@ -12,6 +12,7 @@
 .pydevproject
 .settings
 *.tmp*
+*.settings
 
 # Compiled source #
 ###################
