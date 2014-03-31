@@ -53,12 +53,12 @@ on).
     
 To download and install manually, download:
 
-    http://pypi.python.org/packages/source/n/neo/neo-0.3.0.tar.gz
+    http://pypi.python.org/packages/source/n/neo/neo-0.4.0.tar.gz
 
 Then::
 
-    $ tar xzf neo-0.3.0.tar.gz
-    $ cd neo-0.3.0
+    $ tar xzf neo-0.4.0.tar.gz
+    $ cd neo-0.4.0
     $ python setup.py install
     
 or::
@@ -92,12 +92,16 @@ AsciiSignalIO      Yes      Yes
 AsciiSpikeTrainIO  Yes      Yes
 AxonIO             Yes      No
 BlackrockIO        Yes      No
+BrainwareDamIO     Yes      Yes
+BrainwareF32IO     Yes      Yes
+BrainwareSrcIO     Yes      Yes
 ElanIO             Yes      No
 HDF5IO             Yes      No
 KlustakwikIO       Yes      No
 MicromedIO         Yes      No
 NeoMatlabIO        Yes      Yes
 NeuroExplorerIO    Yes      No
+NeuroscopeIO       Yes      Yes
 PickleIO           Yes      Yes
 PlexonIO           Yes      No
 PyNNIO             Yes      Yes

@@ -1,121 +1,146 @@
-from neo.core.baseneo import BaseNeo
+# -*- coding: utf-8 -*-
+'''
+This module defines :class:`Block`, the main container gathering all the data,
+whether discrete or continous, for a given recording session. base class
+used by all :module:`neo.core` classes.
+
+:class:`Block` derives from :class:`Container`,
+from :module:`neo.core.container`.
+'''
+
+# needed for python 3 compatibility
+from __future__ import absolute_import, division, print_function
+
+from datetime import datetime
+
+from neo.core.container import Container, unique_objs
 
 
-class Block(BaseNeo):
-    """
+class Block(Container):
+    '''
+    Main container for data.
+
     Main container gathering all the data, whether discrete or continous, for a
     given recording session.
 
     A block is not necessarily temporally homogeneous, in contrast to Segment.
 
-    *Usage*:
+    *Usage*::
 
-    TODO
+        >>> from neo.core import (Block, Segment, RecordingChannelGroup,
+        ...                       AnalogSignalArray)
+        >>> from quantities import nA, kHz
+        >>> import numpy as np
+        >>>
+        >>> # create a Block with 3 Segment and 2 RecordingChannelGroup objects
+        ,,, blk = Block()
+        >>> for ind in range(3):
+        ...     seg = Segment(name='segment %d' % ind, index=ind)
+        ...     blk.segments.append(seg)
+        ...
+        >>> for ind in range(2):
+        ...     rcg = RecordingChannelGroup(name='Array probe %d' % ind,
+        ...                                 channel_indexes=np.arange(64))
+        ...     blk.recordingchannelgroups.append(rcg)
+        ...
+        >>> # Populate the Block with AnalogSignalArray objects
+        ... for seg in blk.segments:
+        ...     for rcg in blk.recordingchannelgroups:
+        ...         a = AnalogSignalArray(np.random.randn(10000, 64)*nA,
+        ...                               sampling_rate=10*kHz)
+        ...         rcg.analogsignalarrays.append(a)
+        ...         seg.analogsignalarrays.append(a)
 
     *Required attributes/properties*:
         None
 
     *Recommended attributes/properties*:
-        :name: A label for the dataset
-        :description: text description
-        :file_origin: filesystem path or URL of the original data file.
-        :file_datetime: the creation date and time of the original data file.
-        :rec_datetime: the date and time of the original recording
-        :index: integer. You can use this to define an ordering of your Block.
+        :name: (str) A label for the dataset.
+        :description: (str) Text description.
+        :file_origin: (str) Filesystem path or URL of the original data file.
+        :file_datetime: (datetime) The creation date and time of the original
+            data file.
+        :rec_datetime: (datetime) The date and time of the original recording.
+        :index: (int) You can use this to define an ordering of your Block.
             It is not used by Neo in any way.
 
-    *Container of*:
-        :py:class:`Segment`
-        :py:class:`RecordingChannelGroup`
-
-    *Properties*
-        list_units : descends through hierarchy and returns a list of
-            :py:class:`Unit` existing in the block. This shortcut exists
+    *Properties available on this object*:
+        :list_units: descends through hierarchy and returns a list of
+            :class:`Unit` objects existing in the block. This shortcut exists
             because a common analysis case is analyzing all neurons that
             you recorded in a session.
+        :list_recordingchannels: descends through hierarchy and returns
+            a list of :class:`RecordingChannel` objects existing in the block.
 
-        list_recordingchannels: descends through hierarchy and returns
-            a list of :py:class:`RecordingChannel` existing in the block.
+    Note: Any other additional arguments are assumed to be user-specific
+            metadata and stored in :attr:`annotations`.
 
+    *Container of*:
+        :class:`Segment`
+        :class:`RecordingChannelGroup`
 
-    """
+    '''
+
+    _container_child_objects = ('Segment', 'RecordingChannelGroup')
+    _child_properties = ('Unit', 'RecordingChannel')
+    _recommended_attrs = ((('file_datetime', datetime),
+                           ('rec_datetime', datetime),
+                           ('index', int)) +
+                          Container._recommended_attrs)
+    _repr_pretty_attrs_keys_ = (Container._repr_pretty_attrs_keys_ +
+                                ('file_origin', 'file_datetime',
+                                 'rec_datetime', 'index'))
+    _repr_pretty_containers = ('segments',)
+
     def __init__(self, name=None, description=None, file_origin=None,
                  file_datetime=None, rec_datetime=None, index=None,
                  **annotations):
-        """Initalize a new Block."""
-        BaseNeo.__init__(self, name=name, file_origin=file_origin,
-                         description=description, **annotations)
+        '''
+        Initalize a new :class:`Block` instance.
+        '''
+        super(Block, self).__init__(name=name, description=description,
+                                    file_origin=file_origin, **annotations)
 
         self.file_datetime = file_datetime
         self.rec_datetime = rec_datetime
         self.index = index
 
-        self.segments = []
-        self.recordingchannelgroups = []
+    @property
+    def data_children_recur(self):
+        '''
+        All data child objects stored in the current object,
+        obtained recursively.
+        '''
+        # subclassing this to remove duplicate objects such as SpikeTrain
+        # objects in both Segment and Unit
+        # Only Block can have duplicate items right now, so implement
+        # this here for performance reasons.
+        return tuple(unique_objs(super(Block, self).data_children_recur))
+
+    def list_children_by_class(self, cls):
+        '''
+        List all children of a particular class recursively.
+
+        You can either provide a class object, a class name,
+        or the name of the container storing the class.
+        '''
+        # subclassing this to remove duplicate objects such as SpikeTrain
+        # objects in both Segment and Unit
+        # Only Block can have duplicate items right now, so implement
+        # this here for performance reasons.
+        return unique_objs(super(Block, self).list_children_by_class(cls))
 
     @property
     def list_units(self):
-        """
-        Return a list of all :py:class:`Unit` in a block.
-        """
-        units = []
-        for rcg in self.recordingchannelgroups:
-            for unit in rcg.units:
-                if unit not in units:
-                    units.append(unit)
-        return units
+        '''
+        Return a list of all :class:`Unit` objects in the :class:`Block`.
+        '''
+        return self.list_children_by_class('units')
 
     @property
     def list_recordingchannels(self):
-        """
-        Return a list of all :py:class:`RecordingChannel` in a block.
-        """
-        all_rc = []
-        for rcg in self.recordingchannelgroups:
-            for rc in rcg.recordingchannels:
-                if rc not in all_rc:
-                    all_rc.append(rc)
-        return all_rc
-
-    def merge(self, other):
-        """
-        Merge the contents of another block into this one.
-
-        For each :class:`Segment` in the other block, if its name matches that
-        of a :class:`Segment` in this block, the two segments will be merged,
-        otherwise it will be added as a new segment. The equivalent procedure
-        is then applied to each :class:`RecordingChannelGroup`.
-        """
-        for container in ("segments", "recordingchannelgroups"):
-            lookup = dict((obj.name, obj) for obj in getattr(self, container))
-            for obj in getattr(other, container):
-                if obj.name in lookup:
-                    lookup[obj.name].merge(obj)
-                else:
-                    getattr(self, container).append(obj)
-        ## todo: merge annotations
-
-    _repr_pretty_attrs_keys_ = [
-        "name", "description", "annotations",
-        "file_origin", "file_datetime", "rec_datetime", "index"]
-
-    def _repr_pretty_(self, pp, cycle):
-        pp.text("{0} with {1} segments and {1} groups".format(
-            self.__class__.__name__,
-            len(self.segments),
-            len(self.recordingchannelgroups),
-        ))
-        if self._has_repr_pretty_attrs_():
-            pp.breakable()
-            self._repr_pretty_attrs_(pp, cycle)
-
-        if self.segments:
-            pp.breakable()
-            pp.text("# Segments")
-            pp.breakable()
-            for (i, seg) in enumerate(self.segments):
-                if i > 0:
-                    pp.breakable()
-                pp.text("{0}: ".format(i))
-                with pp.indent(3):
-                    pp.pretty(seg)
+        '''
+        Return a list of all :class:`RecordingChannel` objects in the
+        :class:`Block`.
+        '''
+        return self.list_children_by_class('recordingchannels')

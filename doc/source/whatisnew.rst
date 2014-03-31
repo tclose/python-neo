@@ -2,6 +2,46 @@
 Release notes
 *************
 
+
+What's new in version 0.4.0?
+----------------------------
+
+  * added StimfitIO
+
+What's new in version 0.3.3?
+----------------------------
+
+  * fix a bug in PlexonIO where some EventArrays only load 1 element.
+  * fix a bug in BrainwareSrcIo for segments with no spikes.
+
+
+What's new in version 0.3.2?
+----------------------------
+
+  * cleanup ot io test code, with additional helper functions and methods
+  * added BrainwareDamIo
+  * added BrainwareF32Io
+  * added BrainwareSrcIo
+
+
+What's new in version 0.3.1?
+----------------------------
+
+  * lazy/cascading improvement
+  * load_lazy_olbject() in neo.io added
+  * added NeuroscopeIO
+
+
+What's new in version 0.3.0?
+----------------------------
+
+  * various bug fixes in neo.io
+  * added ElphyIO
+  * SpikeTrain performence improved
+  * An IO class now can return a list of Block (see read_all_blocks in IOs)
+  * python3 compatibility improved
+
+
 What's new in version 0.2.1?
 ----------------------------
 
