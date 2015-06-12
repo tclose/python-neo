@@ -13,6 +13,7 @@
 .settings
 *.tmp*
 *.settings
+.idea
 
 # Compiled source #
 ###################
@@ -44,6 +45,9 @@ dist
 *.EGG-INFO
 # tox testing tool
 .tox
+# coverage
+.coverage
+cover
 
 # OS generated files #
 ######################
@@ -56,4 +60,4 @@ Thumbs.db
 
 # Things specific to this project #
 ###################################
-neo/test/io/files_for_tests
+neo/test/io/neurosharemergeio.py
